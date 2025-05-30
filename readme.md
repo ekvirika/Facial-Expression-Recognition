@@ -263,8 +263,24 @@ Input (1, 48, 48)
 * **Early Stopping**: განხორციელდა **24-ე ეპოქაზე**
 
 
-[Deeper_cnn_v2](https://wandb.ai/ellekvirikashvili-free-university-of-tbilisi-/facial-expression-recognition/runs/fuixhls0?nw=nwuserellekvirikashvili)
+[Deeper_cnn_v2](https://wandb.ai/ellekvirikashvili-free-university-of-tbilisi-/facial-expression-recognition/runs/ql1dpugq?nw=nwuserellekvirikashvili)
 
+
+### V3
+
+#### Basic Flow for Augmented Training:
+`Tensor (from dataset) → ToPILImage() → PIL Augmentations → ToTensor() → Tensor Augmentations → Normalize`
+
+
+#### Features:
+
+±15° random rotation
+50% horizontal flip probability
+Random translation (±10% of image size)
+Random scaling (90%-110%)
+Random shear transformation
+Brightness/contrast jitter
+Random erasing (10% probability)
 ---
 
 ## ✅ დასკვნა
@@ -273,7 +289,81 @@ Input (1, 48, 48)
 > მეორე ვერსია მიდის **leaner architecture + smarter regularization** სტრატეგიით, რათა დაიბალანსოს სისწრაფე, სიზუსტე და სტაბილურობა.
 
 
+## 04_attention_cnn.ipynb
 
+### 🧠 Attention-based CNN Architecture
+
+#### 🔍 Overview
+A Convolutional Neural Network enhanced with Convolutional Block Attention Module (CBAM) that learns to focus on the most discriminative facial regions for expression recognition.
+
+#### 🏗 Core Architecture
+
+```
+Input (1, 48, 48)
+├─ Conv2d(1, 32) → BatchNorm → ReLU
+├─ Conv2d(32, 32) → BatchNorm → ReLU → MaxPool2d(2)
+└─ CBAM(32)  # First attention block
+
+├─ Conv2d(32, 64) → BatchNorm → ReLU
+├─ Conv2d(64, 64) → BatchNorm → ReLU → MaxPool2d(2)
+└─ CBAM(64)  # Second attention block
+
+├─ Conv2d(64, 128) → BatchNorm → ReLU
+├─ Conv2d(128, 128) → BatchNorm → ReLU → MaxPool2d(2)
+└─ CBAM(128)  # Third attention block
+
+├─ AdaptiveAvgPool2d(1)
+├─ Flatten
+├─ Linear(128, 256) → BatchNorm → ReLU → Dropout(0.5)
+└─ Linear(256, 7)  # 7 emotion classes
+```
+
+#### 🎯 Attention Mechanism (CBAM)
+
+**Convolutional Block Attention Module** combines:
+
+1. **Channel Attention**
+   - Captures 'what' to focus on in the feature maps
+   - Uses both average and max pooling paths
+   - Learns channel-wise feature importance
+
+2. **Spatial Attention**
+   - Determines 'where' to focus in the spatial dimensions
+   - Applies 1x1 convolutions to create spatial attention maps
+   - Highlights important facial regions for expression recognition
+
+#### ⚙️ Training Configuration
+- **Optimizer**: AdamW with weight decay (1e-4)
+- **Learning Rate**: 0.001 with ReduceLROnPlateau scheduling
+- **Regularization**:
+  - Dropout (0.5) in fully connected layers
+  - L2 weight decay
+  - Data augmentation (random horizontal flip, rotation)
+- **Batch Size**: 64
+- **Epochs**: 50 with early stopping
+
+#### 📊 Performance Features
+- **Visual Attention Maps**: Visualize which facial regions the model focuses on
+- **Class Activation Mapping**: Understand model decisions
+- **W&B Integration**: Track experiments and compare runs
+- **Confusion Matrix**: Detailed performance analysis
+
+#### 🚀 Key Benefits
+1. **Improved Accuracy**: Focuses on relevant facial features
+2. **Better Generalization**: Attention acts as a form of regularization
+3. **Interpretability**: Visual explanations of model decisions
+4. **Efficiency**: Lightweight attention modules with minimal computational overhead
+
+#### 🛠 Implementation Details
+- Uses PyTorch for model implementation
+- Integrates with Weights & Biases for experiment tracking
+- Includes comprehensive data augmentation
+- Implements learning rate scheduling and early stopping
+
+#### 📈 Expected Performance
+- Training Accuracy: ~85-90%
+- Validation Accuracy: ~60-65%
+- Focuses on eyes, mouth, and eyebrow regions for expression recognition
 
 ## 🔍 Weights & Biases ინტეგრაცია
 
@@ -293,27 +383,5 @@ Input (1, 48, 48)
 2. **კლასების დისბალანსი**: გამოყენებულია წონიანი დანაკარგის ფუნქციები
 3. **სასწავლო სიჩქარის ცვლა**: დიდი გავლენა აქვს კონვერგენციაზე
 4. **მოდელის სიღრმე**: ბალანსი სირთულესა და ეფექტურობას შორის
-
-## 🚀 გამოყენება
-
-### მოდელის გაწვრთნა
-
-```bash
-python src/train.py --model cnn --epochs 50 --batch_size 64 --lr 0.001
-```
-
-### შეფასება
-
-```bash
-python src/evaluate.py --model_path models/best_model.pth
-```
-
-## 🤝 შეუერთდი პროექტს
-
-მოგვაწოდე შენი წვლილი! მოხარული ვიქნებით Pull Request-ების მისაღებად.
-
-## 📄 ლიცენზია
-
-ეს პროექტი ლიცენზირებულია MIT ლიცენზიით — დეტალებისთვის იხილეთ ფაილი [LICENSE](LICENSE).
 
 
