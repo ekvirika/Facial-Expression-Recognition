@@ -93,6 +93,8 @@ Facial-Expression-Recognition/
 * კონფუზიის მატრიცები
 * ნიმუშების პროგნოზები
 
+
+# Notebook 01_data_exploration.ipynb
 ## Data Exploration Results
 
 ### Dataset Overview
@@ -121,24 +123,157 @@ Facial-Expression-Recognition/
 - Validation: 5,742 samples (20%)  
 - Stratified split to maintain class distribution
 
-### გამოყენებული არქიტექტურები
+# Training
+## 02_baseline_cnn.ipynb **Baseline CNN**
 
-1. **მარტივი CNN**
+Simple Convolutional Neural Network for facial expression recognition. Serves as an initial model to establish performance baselines.
 
-   * 3-4 კონვოლუციური ფენა
-   * MaxPooling და BatchNorm
-   * Dropout რეგულარიზაციისთვის
+### 🔹 Version 1
 
-2. **ResNet ვარიანტები**
+#### 🏗 Architecture
 
-   * ResNet18
-   * ResNet34
-   * წონებით ან წონების გარეშე
+```
+Input (1, 48, 48)
+├─ Conv2d(1, 32, kernel_size=5, padding=2)
+├─ ReLU()
+├─ MaxPool2d(kernel_size=2, stride=2)
+├─ Conv2d(32, 64, kernel_size=5, padding=2)
+├─ ReLU()
+├─ MaxPool2d(kernel_size=2, stride=2)
+├─ Flatten()
+├─ Dropout(0.3)
+├─ Linear(64 * 12 * 12, 128)
+├─ ReLU()
+├─ Dropout(0.3)
+└─ Linear(128, 7)
+```
 
-3. **EfficientNet**
+#### ⚙️ Training Configuration
+- **Optimizer**: Adam (lr=0.001)
+- **Loss**: Cross-entropy
+- **Batch Size**: 64
+- **Epochs**: 20 (early stopping)
+- **Regularization**:
+  - Dropout (0.3)
 
-   * სხვადასხვა მასშტაბირების ვარიანტები
-   * Fine-tuning სტრატეგიები
+#### 📊 Results
+- Training accuracy: ~85%
+- Validation accuracy: ~60%
+- **Issue**: Overfitting observed after 20 epochs
+
+
+[Simple_cnn_v1](https://wandb.ai/ellekvirikashvili-free-university-of-tbilisi-/facial-expression-recognition/runs/70toflci?nw=nwuserellekvirikashvili)
+
+---
+
+
+
+### 🔹 Version 2 (Improved)
+
+#### 🛠 Architecture Improvements
+- **Batch Normalization** after each conv layer
+- **Spatial Dropout (0.2)** in conv layers
+- **Higher Dropout (0.6)** in FC layers
+- **Reduced FC layers** (512 → 256 → 128)
+- **Adaptive Pooling** for better input size handling
+
+#### ⚙️ Training Configuration
+- **Learning Rate**: 0.0005 (reduced from 0.001)
+- **Weight Decay**: 1e-4 (L2 regularization)
+- **Early Stopping** with patience=5
+- **Learning Rate Scheduling**: Reduce on plateau
+- **Batch Size**: 64 (unchanged)
+
+#### 📊 Expected Improvements
+- Better generalization
+- Reduced overfitting
+- More stable training
+
+## 📁 `03_deeper_cnn.ipynb`
+
+### 🧠 Deeper CNN with Batch Normalization
+
+---
+
+## 🔹 Version 1 (Deep\_CNN\_V1)
+
+### 🏗 Architecture
+
+* 7-შრიანი Convolutional ნერვული ქსელი (CNN)
+* **4 Convolutional ბლოკი**, ყოველი დასრულებულია MaxPooling-ით
+* ყოველი Conv-შრის შემდეგ გამოყენებულია **Batch Normalization**
+* **Global Average Pooling** სრულდება FC ფენებამდე
+* Dropout (0.5) რეგულარიზაციისთვის
+* **Batch Normalization** გამოიყენება როგორც Convolutional, ისე Fully Connected ფენებში
+
+### ⚙️ ჰიპერპარამეტრები
+
+* Filters: `32 → 64 → 128 → 256`
+* Optimizer: **Adam**, learning rate = `0.001`
+* L2 weight decay: `1e-4`
+* Epochs: `40` (Early stopping შესაძლებელი)
+* Dropout rate: `0.5`
+* Tracking: Weights & Biases ინტეგრაცია (`wandb`)
+
+### 📉 Performance
+
+* **Train Loss**: `0.1689`, **Train Accuracy**: `93.93%`
+* **Val Loss**: `2.3061`, **Val Accuracy**: `57.72%`
+* **Early Stopping**: განხორციელდა **24-ე ეპოქაზე**
+* **Observation**: მოდელმა გადაჭარბებულად მოერგო ტრენინგ მონაცემებს — **overfitting**
+
+📊 [Deep\_cnn\_v1 Run on W\&B](https://wandb.ai/ellekvirikashvili-free-university-of-tbilisi-/facial-expression-recognition/runs/f1pw8dnp?nw=nwuserellekvirikashvili)
+
+---
+
+## 🔹 Version 2 (Deep\_CNN\_V2)
+
+### ⚙️ Key Changes from V1
+
+* **Epochs შემცირდა**: `40 → 30`
+* **Dropout გაიზარდა**: `0.5 → 0.7`
+* **Spatial Dropout დამატებულია**:
+  `self.dropout1 = nn.Dropout2d(0.1)` — ადრეულ ლეიერებს შორის, feature-level რეგულარიზაციისთვის
+* **Channel კომპრესიები ბოლო Conv ფენებში**: `256 → 192`
+* **FC ფენები გამარტივდა**: `512 → 256`
+* **Early Stopping პარამეტრები გამკაცრდა**:
+
+  ```python
+  'early_stop_patience': 7,  # More aggressive early stopping
+  'lr_patience': 3,          # Reduce LR sooner
+  ```
+
+### 🎯 Goal
+
+* **Overfitting-ის შემცირება**
+* **მოდელის გენერალიზაციის გაუმჯობესება**
+* **მეტად სწრაფი და აგრესიული ადაპტაცია validation performance-ზე**
+
+### ⏳ შედეგების მოლოდინი
+
+* უკეთესი generalization-validation ბალანსი
+* ნაკლები variance epochs-ს შორის
+* ნაკლები training-validation gap
+
+
+#### 📊 Results
+
+* **Train Loss**: `0.1689`, **Train Accuracy**: `93.93%`
+* **Val Loss**: `2.3061`, **Val Accuracy**: `57.72%`
+* **Early Stopping**: განხორციელდა **24-ე ეპოქაზე**
+
+
+[Deeper_cnn_v2](https://wandb.ai/ellekvirikashvili-free-university-of-tbilisi-/facial-expression-recognition/runs/fuixhls0?nw=nwuserellekvirikashvili)
+
+---
+
+## ✅ დასკვნა
+
+> პირველი ვერსია საკმარისად ძლიერი აღმოჩნდა training მონაცემებზე, მაგრამ ვერ გაართვა თავი validation-ზე — საჭირო გახდა აგრესიული რეგულარიზაცია და ადრეული learning rate decay.
+> მეორე ვერსია მიდის **leaner architecture + smarter regularization** სტრატეგიით, რათა დაიბალანსოს სისწრაფე, სიზუსტე და სტაბილურობა.
+
+
+
 
 ## 🔍 Weights & Biases ინტეგრაცია
 
