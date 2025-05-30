@@ -101,7 +101,7 @@ Facial-Expression-Recognition/
 - Stratified split to maintain class distribution
 
 # Training
-## 02_baseline_cnn.ipynb **Baseline CNN**
+## 02_simple_cnn.ipynb **Simple CNN**
 
 Simple Convolutional Neural Network for facial expression recognition. Serves as an initial model to establish performance baselines.
 
@@ -129,17 +129,23 @@ Input (1, 48, 48)
 - **Optimizer**: Adam (lr=0.001)
 - **Loss**: Cross-entropy
 - **Batch Size**: 64
-- **Epochs**: 20 (early stopping)
+- **Epochs**: 30 (with early stopping)
 - **Regularization**:
-  - Dropout (0.3)
+  - Dropout (0.5)
+- **Early Stopping**: 5 epochs
 
 #### 📊 Results
-- Training accuracy: ~85%
-- Validation accuracy: ~60%
-- **Issue**: Overfitting observed after 20 epochs
+```
+Train Loss: 0.4371, Train Acc: 83.87%
+Val Loss: 1.5326, Val Acc: 57.66%
+Time: 22.21s
+--------------------------------------------------
+Early stopping at epoch 12
 
+```
+![alt text](media/image.png)
 
-[Simple_cnn_v1](https://wandb.ai/ellekvirikashvili-free-university-of-tbilisi-/facial-expression-recognition/runs/70toflci?nw=nwuserellekvirikashvili)
+[Simple_cnn_v1](https://wandb.ai/ellekvirikashvili-free-university-of-tbilisi-/facial-expression-recognition/runs/i6k9h806?nw=nwuserellekvirikashvili)
 
 ---
 
@@ -148,23 +154,76 @@ Input (1, 48, 48)
 ### 🔹 Version 2 (Improved)
 
 #### 🛠 Architecture Improvements
-- **Batch Normalization** after each conv layer
-- **Spatial Dropout (0.2)** in conv layers
-- **Higher Dropout (0.6)** in FC layers
-- **Reduced FC layers** (512 → 256 → 128)
-- **Adaptive Pooling** for better input size handling
+ADDED:
+
+   - Data Augmentation: This is a powerful technique that artificially increases the size of your training dataset by applying random transformations to your images (e.g., rotations, flips, shifts). This helps the model see more variations of the training data and makes it more robust.
+   - Batch Normalization: Add Batch Normalization layers after each convolutional layer (and before the activation function). This helps stabilize the training process and acts as a form of regularization.
+
+
+
 
 #### ⚙️ Training Configuration
 - **Learning Rate**: 0.0005 (reduced from 0.001)
 - **Weight Decay**: 1e-4 (L2 regularization)
-- **Early Stopping** with patience=5
+- **Early Stopping** with patience=7   
 - **Learning Rate Scheduling**: Reduce on plateau
 - **Batch Size**: 64 (unchanged)
+- **Epochs**: 20, so that training is faster and early stopping is more effective and overfitting is reduced
 
 #### 📊 Expected Improvements
 - Better generalization
 - Reduced overfitting
 - More stable training
+
+#### 📊 Results
+```
+Train Loss: 1.1825, Train Acc: 55.08%
+Val Loss: 1.1020, Val Acc: 57.89%
+Time: 36.64s
+--------------------------------------------------
+
+Training completed in 762.90s
+Best validation accuracy: 59.11%
+```
+ასე ვუშველეთ ოვერფიტს:
+![alt text](media/image-1.png)
+
+
+მაგრამ ცუდი რაღაც მოხდა, ამ მოდელმა საერთოდ ვერ ისწავლა disgust ემოცია.
+![alt text](media/Untitled.png)
+
+
+ამიტომ გადავწყვიტე class imbalance პრობლემა გადამეჭრა.
+
+[simple_cnn_v2](https://wandb.ai/ellekvirikashvili-free-university-of-tbilisi-/facial-expression-recognition/runs/uxblb7xc?nw=nwuserellekvirikashvili)
+
+### 🔹 Version 3 weighted loss
+
+#### ⚙️ Training Configuration
+- Weighted Loss Function because of class imbalance
+      criterion = nn.CrossEntropyLoss(weight=class_weights)
+- Oversampling the Minority Classes
+      WeightedRandomSampler
+- different optimizer AdamW optimizer
+
+#### 📊 Results
+```
+Train Loss: 1.7487, Train Acc: 14.08%
+Val Loss: 2.0037, Val Acc: 1.76%
+Time: 47.32s
+--------------------------------------------------
+Early stopping at epoch 8
+```
+
+მგონი ორივე ერთად არ უნდა გამომეყენებინა და სანამ არ გაჩერდა იქამდე ვერ დავინახე, რომ რატომღაც მარტო disgust ისწავლა ამ მოდელმა (ზუსტად disgusted სახე მქონდა conf matrix რომ დავინახე), ამიტომ კიდევ ერთხელ გავიშვი მხოლოდ weighted_loss -ით.
+![alt text](media/Untitled-1.png)
+
+
+[Simple_cnn_v3](https://wandb.ai/ellekvirikashvili-free-university-of-tbilisi-/facial-expression-recognition/runs/sptprk6t?nw=nwuserellekvirikashvili)
+
+
+
+
 
 ## 📁 `03_deeper_cnn.ipynb`
 
