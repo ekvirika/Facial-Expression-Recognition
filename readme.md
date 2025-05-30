@@ -32,43 +32,20 @@
 * 5: გაოცება (Surprise)
 * 6: ნეიტრალური (Neutral)
 
-## 🛠️ დაყენება და ინსტალაცია
 
-1. დააკლონეთ რეპოზიტორია:
-
-   ```bash
-   git clone https://github.com/your-username/Facial-Expression-Recognition.git
-   cd Facial-Expression-Recognition
-   ```
-
-2. დააყენეთ საჭირო პაკეტები:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. დააკავშირეთ Weights & Biases:
-
-   ```bash
-   wandb login
-   ```
 
 ## 📁 პროექტის სტრუქტურა
 
 ```
 Facial-Expression-Recognition/
-├── data/                    # მონაცემების შესანახი საქაღალდე
-├── models/                  # მოდელის არქიტექტურები
-│   ├── cnn.py
-│   ├── resnet.py
-│   └── ...
 ├── notebooks/               # Jupyter ნოუთბუქები ექსპლორაციისთვის
-├── src/                     # ძირითადი კოდი
-│   ├── data_loader.py
-│   ├── train.py
-│   ├── evaluate.py
-│   └── utils.py
-├── configs/                 # კონფიგურაციის ფაილები
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_baseline_cnn.ipynb
+│   ├── 03_deeper_cnn.ipynb
+│   ├── 04_attention_cnn.ipynb
+│   ├── 05_resnet.ipynb
+│   ├── 06_ensemble.ipynb
+│   └── 07_final_model.ipynb
 ├── requirements.txt
 └── README.md
 ```
@@ -267,26 +244,35 @@ Input (1, 48, 48)
 
 
 ### V3
+ამ დრომდე რა მოდელებიც გავტესტე, აშკარა იყო რომ ყველაფერს ჰქონდა class imbalance პრობლემა, განსაკუთრებით როგორც data exploration-შიც გამოჩნდა, ძალიან ცოტა გვაქვს მაგალითად Disgust კლასი.
 
+ამ შემთხვევაში გავტესტე იგივე კონფიგურაცია, რაც მეორე ვერსიაში, უბრალოდ აუგმენტაცია, კერძოდ:
 #### Basic Flow for Augmented Training:
 `Tensor (from dataset) → ToPILImage() → PIL Augmentations → ToTensor() → Tensor Augmentations → Normalize`
 
 
-#### Features:
+#### ჩემი დამატებული features:
 
-±15° random rotation
-50% horizontal flip probability
-Random translation (±10% of image size)
-Random scaling (90%-110%)
-Random shear transformation
-Brightness/contrast jitter
-Random erasing (10% probability)
+- ±15° random rotation
+- 50% horizontal flip probability
+- Random translation (±10% of image size)
+- Random scaling (90%-110%)
+- Random shear transformation
+- Brightness/contrast jitter
+- Random erasing (10% probability)
+
+
+#### 📊 Results
+
+
+[Deep CNN V3 (with Augmentation)](https://wandb.ai/ellekvirikashvili-free-university-of-tbilisi-/facial-expression-recognition/runs/mv3b6zp2?nw=nwuserellekvirikashvili)
 ---
 
 ## ✅ დასკვნა
 
-> პირველი ვერსია საკმარისად ძლიერი აღმოჩნდა training მონაცემებზე, მაგრამ ვერ გაართვა თავი validation-ზე — საჭირო გახდა აგრესიული რეგულარიზაცია და ადრეული learning rate decay.
+> პირველი ვერსია თავიდან კარგად მიდიოდა training მონაცემებზე, მაგრამ წავიდა overfitting-ში და early stopping-მა გააჩერა. და საჭირო გახდა უკეთესი რეგულარიზაცია და ადრეული learning rate decay. 
 > მეორე ვერსია მიდის **leaner architecture + smarter regularization** სტრატეგიით, რათა დაიბალანსოს სისწრაფე, სიზუსტე და სტაბილურობა.
+> მესამე ვერსიაში ვცადე transform-ები, სწავლა გაუჭირდა, საკმაოდ დიდი დრო დასჭირდა 40% აკურატულობაზე ასულიყო.
 
 
 ## 04_attention_cnn.ipynb
